@@ -1,0 +1,146 @@
+<html>
+<head>
+<title>
+Platforming Game
+</title>
+</head>
+<body background="http://onlyonesandzeros.com/wp-content/uploads/2017/01/platforming_game_background.jpg">
+<h1 id="score" style="font-family:Arial">Score: 0</h1> <!-- Creates h1 tag with id "score" to display player score -->
+<canvas id="canvas" width="600" height="600"></canvas>
+<script type="text/javascript">
+
+	{ //Defines variables
+		{ //Defines character variables
+			var characterX = (window.innerWidth-10)/2;
+			var characterY = -7500-(window.innerHeight - 75);
+			var characterY_Velocity = 0;
+		}
+		
+		{ //Defines environment variables
+			var platformX = [];
+			var platformY = []; //Creates array to store y positions of platforms
+			var platformSize = [];
+			var speed = 1; //Creates variable to store speed
+			var speedIncrease = 0.001; //Creates variable to store speed increase
+			var score = 0; //Creates variable to store score
+			var gameOver = 0;
+			var platformGenerationTimer = 0;
+		}
+	}
+	
+	document.body.onkeyup = function(space_jump){ //Detects spacebar press
+		if(space_jump.keyCode == 32){
+			for(w=0;w<platformX.length;w++){
+				if(characterX>(platformX[w]-25)&&characterX<(platformX[w]+platformSize[w]+50)&&characterY>platformY[w]&&characterY<(platformY[w]+20)){
+					characterY_Velocity-=7.5;
+				}
+			}
+		}
+	}
+	
+	document.getElementById("canvas").onclick = function mouse_jump(){ //Detects mouse click
+		for(r=0;r<platformX.length;r++){
+			if(characterX>(platformX[r]-25)&&characterX<(platformX[r]+platformSize[r]+50)&&characterY>platformY[r]&&characterY<(platformY[r]+20)){
+				characterY_Velocity-=7.5;
+			}
+		}
+	}
+	
+	
+	function drawScreen(){ //Draws game
+				
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext("2d"); 
+		
+		ctx.canvas.width = window.innerWidth - 10;
+		ctx.canvas.height = window.innerHeight - 75;
+		
+		{ //Clears canvas by filling with rectangle
+		
+			ctx.beginPath();
+			ctx.fillStyle = "rgba(255,255,255,0)";
+				
+			ctx.fillRect(0,0,canvas.width,canvas.height);
+			ctx.fill();
+		
+		}
+		
+		for(i=0;i<platformX.length;i++){ //Draws platforms
+			
+			ctx.beginPath(); //Starts path
+			ctx.fillStyle = "rgba(50,50,50,1)"; //Defines color to fill platform with
+				
+			ctx.fillRect(platformX[i],platformY[i],platformSize[i],25); //Draws platform
+			ctx.fill(); //Fills platform
+				
+			platformX[i]-=speed; //Moves platforms based on scrolling speed
+			
+		}
+		
+		
+		{ //Draws character
+		
+			ctx.beginPath(); //Starts path
+			ctx.fillStyle = "rgba(100,100,100,0.9)"; //Defines fill color for character
+				
+			ctx.arc(characterX,characterY-20,20,0,2 * Math.PI,false); //Draws character with .arc
+			ctx.fill(); //Fills character
+			
+			{ //Evaluates character physics
+			
+				characterY+=characterY_Velocity; //Updates character y position based on y velocity
+				if(characterY_Velocity<10){
+					characterY_Velocity+=0.1;
+				}
+				else if(characterY_Velocity>-5){
+					characterY_Velocity-=0.1;
+				}
+				for(q=0;q<platformX.length;q++){
+					if(characterX>(platformX[q]-25)&&characterX<(platformX[q]+platformSize[q])&&characterY>platformY[q]&&characterY<(platformY[q]+10)){
+						if(characterY_Velocity>0){
+							characterY_Velocity=0;
+						}
+					}
+				}
+			
+			}
+		
+		}
+		
+		if(gameOver==0){
+			speed+=speedIncrease; //Increases scrolling speed
+			score+=0.025*speed; //Increases score
+			
+			if(platformGenerationTimer>500){
+				for(e=0;e<Math.ceil(Math.random()*2);e++){
+					platformX.push(canvas.width);
+					platformY.push((Math.random()*(canvas.height-300))+150);
+					platformSize.push((Math.random()*250)+400);
+					
+					if(score>100){
+						platformX.splice(0,1);
+						platformY.splice(0,1);
+						platformSize.splice(0,1);
+					}
+				}
+				platformGenerationTimer=0;
+			}
+			platformGenerationTimer+=speed;
+			document.getElementById("score").innerHTML = "Score: " + Math.round(score);
+		}
+		
+			
+		if(characterY>canvas.width+50){
+			gameOver=1;
+			speed=speed*1.05;
+			document.getElementById("score").innerHTML = "Game over! Your score was " + Math.round(score) + ". Press ctrl+r / reload the page to restart.";
+		}
+		
+	}
+	
+	var intervalID = window.setInterval(drawScreen,10);
+
+</script>
+
+</body>
+</html>
